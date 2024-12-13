@@ -48,11 +48,13 @@ memory = ConversationBufferMemory(memory_key="chat_history", return_messages=Tru
 prompt = PromptTemplate(
     input_variables=["question", "chat_history"],
     template=(
+        "You're now an expert in database management and openGauss. "
         "The user is asking:\n\n"
         "{question}\n\n"
+        "The database is based on openGauss\n\n"
         "This is the conversation history:\n\n"
         "{chat_history}\n\n"
-        "Provide an accurate and helpful response."
+        "Provide an accurate and helpful response, and give user the sql command to execute.\n\n"
     ),
 )
 conversation = LLMChain(llm=model, prompt=prompt, memory=memory, verbose=False)
