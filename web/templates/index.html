@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL & AI Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        textarea, input, button {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result, .history {
+            margin-top: 30px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PostgreSQL & AI Assistant</h1>
+    <div class="container">
+        <!-- SQL Executor -->
+        <h3>Enter SQL Command</h3>
+        <form id="sqlForm">
+            <textarea id="sqlCommand" placeholder="Enter your SQL command here..."></textarea>
+            <button type="submit">Execute SQL</button>
+        </form>
+        <div id="sqlResult" class="result"></div>
+
+        <h3>History Limit</h3>
+        <input type="number" id="historyLimit" value="{{ history_limit }}" min="1">
+        <button id="setHistoryLimitButton">Set History Limit</button>
+
+        <div id="sqlHistory" class="history">
+            <h3>SQL Command History</h3>
+            {% for item in history %}
+                <div>
+                    <strong>SQL:</strong> <pre>{{ item.sql }}</pre>
+                    <strong>Result:</strong> <pre>{{ item.result }}</pre>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- AI Assistant -->
+        <h3>Ask the AI Assistant</h3>
+        <form id="aiForm">
+            <textarea id="aiQuestion" placeholder="Ask a question to the AI assistant..."></textarea>
+            <button type="submit">Ask AI</button>
+        </form>
+        <div id="aiResult" class="result"></div>
+
+        <div id="aiHistory" class="history">
+            <h3>AI Chat History</h3>
+            {% for item in chat_history %}
+                <div>
+                    <strong>Question:</strong> <pre>{{ item.question }}</pre>
+                    <strong>Response:</strong> <pre>{{ item.response }}</pre>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("sqlForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const sqlCommand = document.getElementById("sqlCommand").value;
+            
+            fetch("/execute_sql", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "sql_command=" + encodeURIComponent(sqlCommand)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("sqlResult");
+                resultDiv.innerHTML = data.status === "success"
+                    ? `<pre>${data.message}</pre>`
+                    : `<p class="error">${data.message}</p>`;
+            });
+        });
+
+        document.getElementById("aiForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const question = document.getElementById("aiQuestion").value;
+            
+            fetch("/ask_model", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "question=" + encodeURIComponent(question)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById("aiResult");
+                resultDiv.innerHTML = data.status === "success"
+                    ? `<pre>${data.response}</pre>`
+                    : `<p class="error">${data.message}</p>`;
+            });
+        });
+
+        document.getElementById("setHistoryLimitButton").addEventListener("click", function() {
+            const historyLimit = document.getElementById("historyLimit").value;
+            
+            fetch("/set_history_limit", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "history_limit=" + encodeURIComponent(historyLimit)
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message));
+        });
+    </script>
+
+</body>
+</html>
