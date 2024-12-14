@@ -92,7 +92,6 @@ if __name__ == '__main__':
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
-    create_procedure(conn, cur)
-    # recreate(conn, cur)
+    recreate(conn, cur)
 
     conn.close()    
