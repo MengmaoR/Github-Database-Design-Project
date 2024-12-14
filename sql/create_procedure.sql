@@ -1,11 +1,10 @@
-CREATE OR REPLACE PROCEDURE get_recommendations(
+-- 创建获取推荐仓库的存储过程
+CREATE OR REPLACE PROCEDURE get_recommendations (
     IN user_id INT,
-    OUT ref refcursor
-)
-AS $$
+    OUT out_cursor REFCURSOR
+) AS
 BEGIN
-    -- 打开游标并执行查询
-    OPEN ref FOR
+    OPEN out_cursor FOR
         SELECT r.repository_name
         FROM repositories r
         LEFT JOIN user_view_repositories v 
@@ -27,19 +26,16 @@ BEGIN
             COUNT(f.repository_name) DESC
         LIMIT 10;
 END;
-$$ LANGUAGE plpgsql;
+##
 
+-- 创建获取热门仓库的存储过程
 CREATE OR REPLACE PROCEDURE get_trending_repositories(
     IN time_range INT,
     IN language VARCHAR(50),
-    OUT ref refcursor
-)
-AS $$
-DECLARE
-    ref refcursor;
+    OUT out_cursor REFCURSOR
+) AS
 BEGIN
-    -- 打开游标并执行查询
-    OPEN ref FOR
+    OPEN out_cursor FOR
         SELECT r.repository_name
         FROM repositories r
         LEFT JOIN user_star_repositories s 
@@ -68,5 +64,4 @@ BEGIN
             COUNT(p.repository_name) DESC
         LIMIT 10;
 END;
-$$ LANGUAGE plpgsql;
 ##

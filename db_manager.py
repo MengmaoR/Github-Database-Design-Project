@@ -20,6 +20,7 @@ def execute_sql(sql_file_name, split, conn, cur):
     for command in sql_commands:
         command = command.strip()
         if command:
+            # print(f'Executing command:\n{command}')
             try:
                 cur.execute(command)
                 print(f'Successfully executed command: {command}\n')
@@ -52,20 +53,43 @@ def create_trigger(conn, cur):
     split = '##'
     execute_sql(sql_file_name, split, conn, cur)
 
+def create_procedure(conn, cur):
+    sql_file_name = 'create_procedure.sql'
+    split = '##'
+    execute_sql(sql_file_name, split, conn, cur)
+
 def recreate(conn, cur):
     drop(conn, cur)
     create_table(conn, cur)
     create_view(conn, cur)
     create_trigger(conn, cur)
+    create_procedure(conn, cur)
 
 def reinsert(conn, cur):
     drop(conn, cur)
     create_table(conn, cur)
     create_view(conn, cur)
+    create_procedure(conn, cur)
 
 if __name__ == '__main__':
     # 连接数据库
-    conn = psycopg2.connect(database="db_test", user="user_test", password="DBlab@123456", host="120.46.137.179", port="5432")
+    with open('./db_link.txt', 'r', encoding='utf-8') as file:
+        db_link = file.readlines()
+
+    db_link = [line.strip() for line in db_link if line.strip()]
+
+    config = ''.join(db_link).split(',')
+
+    # 数据库连接配置
+    DB_CONFIG = {
+        "database": config[0],
+        "user": config[1],
+        "password": config[2],
+        "host": config[3],
+        "port": config[4],
+    }
+
+    conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
     recreate(conn, cur)

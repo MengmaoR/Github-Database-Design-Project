@@ -10,13 +10,23 @@ import db_manager
 
 def main():
     # 建立数据库连接
-    conn = psycopg2.connect(
-        database="db_test", 
-        user="user_test", 
-        password="DBlab@123456", 
-        host="120.46.137.179", 
-        port="5432"
-    )
+    with open('./db_link.txt', 'r', encoding='utf-8') as file:
+        db_link = file.readlines()
+
+    db_link = [line.strip() for line in db_link if line.strip()]
+
+    config = ''.join(db_link).split(',')
+
+    # 数据库连接配置
+    DB_CONFIG = {
+        "database": config[0],
+        "user": config[1],
+        "password": config[2],
+        "host": config[3],
+        "port": config[4],
+    }
+
+    conn = psycopg2.connect(**DB_CONFIG)
     cursor = conn.cursor()
 
     db_manager.reinsert(conn, cursor)
