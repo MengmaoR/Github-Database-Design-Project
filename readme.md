@@ -1,10 +1,10 @@
 # Github-Database-Design-Project
 
-## 项目简介
-本项目基于 Github 网站的基础数据，设计了一个数据库，用于存储 Github 网站上的用户、仓库、代码、问题、评论等信息。项目包含了数据库的设计文档、数据库的创建脚本、数据库的生成脚本、数据库的管理脚本、数据库的交互脚本等。
+## Project Introduction
+This project is based on the basic data of the Github website and designs a database to store information about users, repositories, code, issues, comments, etc. on the Github website. The project includes database design documents, database creation scripts, database generation scripts, database management scripts, and database interaction scripts.
 
-## 数据库连接
-要将项目脚本连接至您的数据库，需先在主目录下创建一个db_link.txt文件，并在其中写入您的数据库配置信息，格式如下：
+## Database Connection
+To connect the project scripts to your database, you need to create a db_link.txt file in the main directory and write your database configuration information in the following format:
 ``` ./db_link.txt
 your_database,
 your_user,
@@ -13,25 +13,25 @@ your_host,
 your_port
 ```
 
-## 数据库管理
-执行 ./db_manage.py 脚本可以对数据库结构进行管理，包括创建和删除表、视图及触发器。
+## Database Management
+Run the ./db_manage.py script to manage the database structure, including creating and deleting tables, views, and triggers.
 ``` shell
 python3 db_manage.py
 ```
 
-## 随机生成数据
-执行 ./db_generate.py 脚本可以基于faker库随机生成数据并插入数据库，数据涵盖所有表及视图，并可符合所有表级约束条件。但由于触发器的存在，插入数据时可能会出现约束冲突，此时会跳过该条数据的插入。
+## Random Data Generation
+Run the ./db_generate.py script to randomly generate data based on the faker library and insert it into the database. The data covers all tables and views and can meet all table-level constraints. However, due to the presence of triggers, constraint conflicts may occur when inserting data, in which case the data insertion will be skipped.
 ``` shell
 python3 db_generate.py
 ```
 
-## 数据库交互
-执行 ./web/app.py 脚本可以启动一个简单的web应用，用于与数据库进行交互，网页将会运行在本地的5000端口。网页允许输入 SQL 语句进行查询，并可与生成式 AI 进行问答，以辅助用户编写 SQL 语句。
+## Database Interaction
+Run the ./web/app.py script to start a simple web application for interacting with the database. The web page will run on the local port 5000. The web page allows input of SQL statements for querying and can interact with generative AI to assist users in writing SQL statements.
 ``` shell
 python3 web/app.py
 ```
 
-## 作者
+## Authors
 - MengmaoR
 - lifang535
 - iPhone38
