@@ -111,8 +111,7 @@
                     <h3>Chat History</h3>
                     {% for item in ai_history %}
                         <div>
-                            <strong>User:</strong> <pre>{{ item.user }}</pre>
-                            <strong>AI:</strong> <pre>{{ item.ai }}</pre>
+                            </strong> <div>{{ item.ai | safe }}</div>
                         </div>
                     {% endfor %}
                 </div>
@@ -127,58 +126,92 @@
         const sqlHistoryDiv = document.getElementById("sqlHistory");
         const aiHistoryDiv = document.getElementById("aiHistory");
 
-        // Save scroll positions
+        // 保存滑轮位置
         function saveScrollPositions() {
             return { sqlScroll: sqlHistoryDiv.scrollTop, aiScroll: aiHistoryDiv.scrollTop };
         }
 
-        // Restore scroll positions
+        // 恢复滑轮位置
         function restoreScrollPositions(positions) {
             sqlHistoryDiv.scrollTop = positions.sqlScroll;
             aiHistoryDiv.scrollTop = positions.aiScroll;
         }
 
-        // Clear SQL history
-        document.getElementById("clearSqlHistory").addEventListener("click", function() {
-            const positions = saveScrollPositions();
-            fetch("/clear_sql_history", { method: "POST" })
-                .then(() => location.reload())
-                .finally(() => restoreScrollPositions(positions));
-        });
-
-        // Clear AI history
-        document.getElementById("clearAiHistory").addEventListener("click", function() {
-            const positions = saveScrollPositions();
-            fetch("/clear_ai_history", { method: "POST" })
-                .then(() => location.reload())
-                .finally(() => restoreScrollPositions(positions));
-        });
-
-        // Scroll to bottom after new content
+        // 滑到最下方
         function scrollToBottom(div) {
             div.scrollTop = div.scrollHeight;
         }
 
-        // SQL execution handler
+        // 清除 SQL 历史
+        document.getElementById("clearSqlHistory").addEventListener("click", function() {
+            const positions = saveScrollPositions();
+            fetch("/clear_sql_history", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // 清除 SQL 历史后重新加载数据
+                        document.getElementById("sqlHistory").innerHTML = "<h3>SQL Command History</h3>";
+                    }
+                })
+                .finally(() => restoreScrollPositions(positions));
+        });
+
+        // 清除 AI 历史
+        document.getElementById("clearAiHistory").addEventListener("click", function() {
+            const positions = saveScrollPositions();
+            fetch("/clear_ai_history", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // 清除 AI 历史后重新加载数据
+                        document.getElementById("aiHistory").innerHTML = "<h3>Chat History</h3>";
+                    }
+                })
+                .finally(() => restoreScrollPositions(positions));
+        });
+
+        // 执行 SQL
         document.getElementById("sqlSubmit").addEventListener("click", function() {
             const sqlCommand = document.getElementById("sqlCommand").value;
+            const positions = saveScrollPositions();
             fetch("/execute_sql", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: "sql_command=" + encodeURIComponent(sqlCommand)
-            }).then(() => location.reload())
-              .then(() => scrollToBottom(sqlHistoryDiv));
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === "success") {
+                      // 执行成功后添加到历史记录
+                      const newHistory = `<div><strong>SQL:</strong> <pre>${sqlCommand}</pre><strong>Result:</strong> <pre>${data.message}</pre></div>`;
+                      document.getElementById("sqlHistory").innerHTML += newHistory;
+                  }
+              })
+              .finally(() => {
+                  restoreScrollPositions(positions);
+                  scrollToBottom(sqlHistoryDiv);  // 滑动到最底端
+              });
         });
 
-        // AI question handler
+        // 提问 AI
         document.getElementById("aiSubmit").addEventListener("click", function() {
             const aiQuestion = document.getElementById("aiQuestion").value;
+            const positions = saveScrollPositions();
             fetch("/ask_model", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: "question=" + encodeURIComponent(aiQuestion)
-            }).then(() => location.reload())
-              .then(() => scrollToBottom(aiHistoryDiv));
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === "success") {
+                      // 添加 AI 响应到历史记录
+                      const newHistory = `</strong><div>${data.response}</div></div>`;
+                      document.getElementById("aiHistory").innerHTML += newHistory;
+                  }
+              })
+              .finally(() => {
+                  restoreScrollPositions(positions);
+                  scrollToBottom(aiHistoryDiv);  // 滑动到最底端
+              });
         });
     </script>
 </body>

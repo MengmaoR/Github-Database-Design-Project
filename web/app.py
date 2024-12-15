@@ -1,3 +1,4 @@
+import markdown
 from flask import Flask, render_template, request, jsonify
 import psycopg2
 from psycopg2 import sql
@@ -56,7 +57,7 @@ prompt = PromptTemplate(
 )
 conversation = LLMChain(llm=model, prompt=prompt, memory=memory, verbose=False)
 
-
+# 格式化查询结果
 def format_query_result(rows, columns):
     """格式化查询结果"""
     if not rows:
@@ -68,7 +69,7 @@ def format_query_result(rows, columns):
         output.append(' | '.join(str(cell) for cell in row))
     return "\n".join(output)
 
-
+# 执行SQL命令
 def execute_sql_command(command):
     try:
         print(f"try connect to database: {DB_CONFIG}")
@@ -87,6 +88,10 @@ def execute_sql_command(command):
         return {"status": "success", "message": result}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# 将文本转换为 HTML 格式
+def markdown_to_html(markdown_text):
+    return markdown.markdown(markdown_text)
 
 @app.route("/")
 def index():
@@ -107,10 +112,14 @@ def ask_model():
     try:
         response = conversation.predict(question=question)
         
+        # 将 AI 的响应转换为 Markdown 格式
+        markdown_response = f"**User Question**:\n\n{question}\n\n**AI Response**:\n\n{response}"
+        markdown_html = markdown_to_html(markdown_response)
+
         # 保存 AI 聊天历史记录
-        ai_history.append({"user": question, "ai": response})
+        ai_history.append({"user": question, "ai": markdown_html})
         
-        return jsonify({"status": "success", "response": response})
+        return jsonify({"status": "success", "response": markdown_html})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -128,4 +137,3 @@ def clear_ai_history():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
