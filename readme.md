@@ -1,5 +1,22 @@
 # Github-Database-Design-Project
 
+## Environment Setup
+
+1. Virtual Environment
+It is highly recommended to use venv for virtual environment deployment. The commands for creating and managing the environment are as follows.
+``` shell
+python3 -m venv myvenv  # Create virtual environment
+source myvenv/bin/activate  # Activate virtual environment
+deactivate  # Deactivate virtual environment
+```
+
+2. Dependency Installation
+After activating the virtual environment, use pip to install project dependencies.
+``` shell
+source myvenv/bin/activate  # Activate virtual environment
+pip install -r requirements.txt  # Install dependencies
+```
+
 ## Project Introduction
 This project is based on the basic data of the Github website and designs a database to store information about users, repositories, code, issues, comments, etc. on the Github website. The project includes database design documents, database creation scripts, database generation scripts, database management scripts, and database interaction scripts.
 

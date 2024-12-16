@@ -53,6 +53,7 @@ prompt = PromptTemplate(
         "This is the conversation history:\n\n"
         "{chat_history}\n\n"
         "Provide an accurate and helpful response, and give user the sql command to execute.\n\n"
+        "Whenever you output codes, do not out put the language.\n\n"
     ),
 )
 conversation = LLMChain(llm=model, prompt=prompt, memory=memory, verbose=False)
