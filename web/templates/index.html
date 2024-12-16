@@ -6,146 +6,213 @@
     <title>PostgreSQL & AI Assistant</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 30px;
+            background-color: #f0f4f7;
+            margin: 0;
         }
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .sql-container, .ai-container {
+            width: 48%;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
         }
         textarea, input, button {
             width: 100%;
-            margin-bottom: 20px;
-            padding: 10px;
+            padding: 15px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 8px;
             border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
         }
         button {
             background-color: #4CAF50;
             color: white;
+            border: none;
+            font-size: 18px;
             cursor: pointer;
+            transition: background-color 0.3s;
+            padding: 15px;
         }
         button:hover {
             background-color: #45a049;
         }
-        .result, .history {
+        .history, .ai-history {
             margin-top: 30px;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            max-height: 300px;
+            height: 300px;
             overflow-y: auto;
         }
-        .error {
-            color: red;
+        .history h3, .ai-history h3 {
+            font-size: 20px;
+            color: #555;
+        }
+        .history pre, .ai-history pre {
+            font-size: 14px;
+            color: #444;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 6px;
+            word-wrap: break-word;
+        }
+        .history div, .ai-history div {
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
-
     <h1>PostgreSQL & AI Assistant</h1>
     <div class="container">
-        <!-- SQL Executor -->
-        <h3>Enter SQL Command</h3>
-        <form id="sqlForm">
-            <textarea id="sqlCommand" placeholder="Enter your SQL command here..."></textarea>
-            <button type="submit">Execute SQL</button>
-        </form>
-        <div id="sqlResult" class="result"></div>
-
-        <h3>History Limit</h3>
-        <input type="number" id="historyLimit" value="{{ history_limit }}" min="1">
-        <button id="setHistoryLimitButton">Set History Limit</button>
-
-        <div id="sqlHistory" class="history">
-            <h3>SQL Command History</h3>
-            {% for item in history %}
-                <div>
-                    <strong>SQL:</strong> <pre>{{ item.sql }}</pre>
-                    <strong>Result:</strong> <pre>{{ item.result }}</pre>
+        <div class="flex-container">
+            <!-- SQL Executor -->
+            <div class="sql-container">
+                <h3>Enter SQL Command</h3>
+                <div class="history" id="sqlHistory">
+                    <h3>SQL Command History</h3>
+                    {% for item in sql_history %}
+                        <div>
+                            <strong>SQL:</strong> <pre>{{ item.sql }}</pre>
+                            <strong>Result:</strong> <pre>{{ item.result }}</pre>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
+                <textarea id="sqlCommand" placeholder="Enter your SQL command here..."></textarea>
+                <button id="sqlSubmit">Execute SQL</button>
+                <button id="clearSqlHistory">Clear SQL History</button>
+            </div>
 
-        <!-- AI Assistant -->
-        <h3>Ask the AI Assistant</h3>
-        <form id="aiForm">
-            <textarea id="aiQuestion" placeholder="Ask a question to the AI assistant..."></textarea>
-            <button type="submit">Ask AI</button>
-        </form>
-        <div id="aiResult" class="result"></div>
-
-        <div id="aiHistory" class="history">
-            <h3>AI Chat History</h3>
-            {% for item in chat_history %}
-                <div>
-                    <strong>Question:</strong> <pre>{{ item.question }}</pre>
-                    <strong>Response:</strong> <pre>{{ item.response }}</pre>
+            <!-- AI Assistant -->
+            <div class="ai-container">
+                <h3>Ask the AI Assistant</h3>
+                <div class="ai-history" id="aiHistory">
+                    <h3>Chat History</h3>
+                    {% for item in ai_history %}
+                        <div>
+                            </strong> <div>{{ item.ai | safe }}</div>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
+                <textarea id="aiQuestion" placeholder="Ask a question to the AI assistant..."></textarea>
+                <button id="aiSubmit">Ask AI</button>
+                <button id="clearAiHistory">Clear AI History</button>
+            </div>
         </div>
     </div>
 
     <script>
-        document.getElementById("sqlForm").addEventListener("submit", function(event) {
-            event.preventDefault();
+        const sqlHistoryDiv = document.getElementById("sqlHistory");
+        const aiHistoryDiv = document.getElementById("aiHistory");
+
+        // 保存滑轮位置
+        function saveScrollPositions() {
+            return { sqlScroll: sqlHistoryDiv.scrollTop, aiScroll: aiHistoryDiv.scrollTop };
+        }
+
+        // 恢复滑轮位置
+        function restoreScrollPositions(positions) {
+            sqlHistoryDiv.scrollTop = positions.sqlScroll;
+            aiHistoryDiv.scrollTop = positions.aiScroll;
+        }
+
+        // 滑到最下方
+        function scrollToBottom(div) {
+            div.scrollTop = div.scrollHeight;
+        }
+
+        // 清除 SQL 历史
+        document.getElementById("clearSqlHistory").addEventListener("click", function() {
+            const positions = saveScrollPositions();
+            fetch("/clear_sql_history", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // 清除 SQL 历史后重新加载数据
+                        document.getElementById("sqlHistory").innerHTML = "<h3>SQL Command History</h3>";
+                    }
+                })
+                .finally(() => restoreScrollPositions(positions));
+        });
+
+        // 清除 AI 历史
+        document.getElementById("clearAiHistory").addEventListener("click", function() {
+            const positions = saveScrollPositions();
+            fetch("/clear_ai_history", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // 清除 AI 历史后重新加载数据
+                        document.getElementById("aiHistory").innerHTML = "<h3>Chat History</h3>";
+                    }
+                })
+                .finally(() => restoreScrollPositions(positions));
+        });
+
+        // 执行 SQL
+        document.getElementById("sqlSubmit").addEventListener("click", function() {
             const sqlCommand = document.getElementById("sqlCommand").value;
-            
+            const positions = saveScrollPositions();
             fetch("/execute_sql", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: "sql_command=" + encodeURIComponent(sqlCommand)
-            })
-            .then(response => response.json())
-            .then(data => {
-                const resultDiv = document.getElementById("sqlResult");
-                resultDiv.innerHTML = data.status === "success"
-                    ? `<pre>${data.message}</pre>`
-                    : `<p class="error">${data.message}</p>`;
-            });
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === "success") {
+                      // 执行成功后添加到历史记录
+                      const newHistory = `<div><strong>SQL:</strong> <pre>${sqlCommand}</pre><strong>Result:</strong> <pre>${data.message}</pre></div>`;
+                      document.getElementById("sqlHistory").innerHTML += newHistory;
+                  }
+              })
+              .finally(() => {
+                  restoreScrollPositions(positions);
+                  scrollToBottom(sqlHistoryDiv);  // 滑动到最底端
+              });
         });
 
-        document.getElementById("aiForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            const question = document.getElementById("aiQuestion").value;
-            
+        // 提问 AI
+        document.getElementById("aiSubmit").addEventListener("click", function() {
+            const aiQuestion = document.getElementById("aiQuestion").value;
+            const positions = saveScrollPositions();
             fetch("/ask_model", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "question=" + encodeURIComponent(question)
-            })
-            .then(response => response.json())
-            .then(data => {
-                const resultDiv = document.getElementById("aiResult");
-                resultDiv.innerHTML = data.status === "success"
-                    ? `<pre>${data.response}</pre>`
-                    : `<p class="error">${data.message}</p>`;
-            });
-        });
-
-        document.getElementById("setHistoryLimitButton").addEventListener("click", function() {
-            const historyLimit = document.getElementById("historyLimit").value;
-            
-            fetch("/set_history_limit", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "history_limit=" + encodeURIComponent(historyLimit)
-            })
-            .then(response => response.json())
-            .then(data => alert(data.message));
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: "question=" + encodeURIComponent(aiQuestion)
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === "success") {
+                      // 添加 AI 响应到历史记录
+                      const newHistory = `</strong><div>${data.response}</div></div>`;
+                      document.getElementById("aiHistory").innerHTML += newHistory;
+                  }
+              })
+              .finally(() => {
+                  restoreScrollPositions(positions);
+                  scrollToBottom(aiHistoryDiv);  // 滑动到最底端
+              });
         });
     </script>
-
 </body>
 </html>
