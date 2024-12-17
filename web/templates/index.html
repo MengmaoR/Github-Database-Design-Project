@@ -180,7 +180,7 @@
                 body: "sql_command=" + encodeURIComponent(sqlCommand)
             }).then(response => response.json())
               .then(data => {
-                  if (data.status === "success") {
+                  if (data.status) {
                       // 执行成功后添加到历史记录
                       const newHistory = `<div><strong>SQL:</strong> <pre>${sqlCommand}</pre><strong>Result:</strong> <pre>${data.message}</pre></div>`;
                       document.getElementById("sqlHistory").innerHTML += newHistory;
@@ -202,7 +202,7 @@
                 body: "question=" + encodeURIComponent(aiQuestion)
             }).then(response => response.json())
               .then(data => {
-                  if (data.status === "success") {
+                  if (data.status) {
                       // 添加 AI 响应到历史记录
                       const newHistory = `</strong><div>${data.response}</div></div>`;
                       document.getElementById("aiHistory").innerHTML += newHistory;

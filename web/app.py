@@ -84,10 +84,15 @@ def execute_sql_command(command):
         else:
             conn.commit()
             result = f"{command.strip()} executed successfully. Affected rows: {cur.rowcount}"
+        # rows = cur.fetchall()
+        # columns = [desc[0] for desc in cur.description]
+        # result = format_query_result(rows, columns)
+        
         cur.close()
         conn.close()
         return {"status": "success", "message": result}
     except Exception as e:
+        print(f"error: {e}")
         return {"status": "error", "message": str(e)}
 
 # 将文本转换为 HTML 格式
