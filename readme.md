@@ -43,9 +43,9 @@ python3 db_generate.py
 ```
 
 ## Database Interaction
-Run the ./web/app.py script to start a simple web application for interacting with the database. The web page will run on the local port 5000. The web page allows input of SQL statements for querying and can interact with generative AI to assist users in writing SQL statements.
+Run the ./web/web_demo.py script to start a simple web application for interacting with the database. The web page will run on the local port 5000. The web page allows input of SQL statements for querying and can interact with generative AI to assist users in writing SQL statements.
 ``` shell
-python3 web/app.py
+python3 web/web_demo.py
 ```
 
 ## Authors
