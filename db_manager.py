@@ -73,7 +73,7 @@ def reinsert(conn, cur):
 
 if __name__ == '__main__':
     # 连接数据库
-    with open('./db_link.txt', 'r', encoding='utf-8') as file:
+    with open('web/db_link.txt', 'r', encoding='utf-8') as file:
         db_link = file.readlines()
 
     db_link = [line.strip() for line in db_link if line.strip()]
