@@ -3,10 +3,10 @@ import psycopg2
 import os
 
 # SQL 文件路径
-FILE_PATH = './sql'
+SQL_PATH = './sql'
 
 def execute_sql(sql_file_name, split, conn, cur):
-    sql_file_path = os.path.join(FILE_PATH, sql_file_name)
+    sql_file_path = os.path.join(SQL_PATH, sql_file_name)
 
     with open(sql_file_path, 'r', encoding='utf-8') as file:
         sql_script = file.readlines()
@@ -73,7 +73,7 @@ def reinsert(conn, cur):
 
 if __name__ == '__main__':
     # 连接数据库
-    with open('web/db_link.txt', 'r', encoding='utf-8') as file:
+    with open('db_link.txt', 'r', encoding='utf-8') as file:
         db_link = file.readlines()
 
     db_link = [line.strip() for line in db_link if line.strip()]
